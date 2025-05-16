@@ -1,28 +1,24 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>行列サイズを選択</title>
-</head>
-<body>
-  <h1>行列サイズの指定</h1>
-  <form method="POST">
-    <label for="rows">行数：</label>
-    <select name="rows" id="rows">
-      {% for i in range(min_rows, max_rows + 1) %}
-        <option value="{{ i }}">{{ i }}</option>
-      {% endfor %}
-    </select>
+{% extends "base.html" %}
 
-    <label for="cols">列数：</label>
-    <select name="cols" id="cols">
-      {% for i in range(min_cols, max_cols + 1) %}
-        <option value="{{ i }}">{{ i }}</option>
-      {% endfor %}
-    </select>
+{% block title %}行列サイズの選択{% endblock %}
 
-    <br><br>
-    <button type="submit">次へ</button>
-  </form>
-</body>
-</html>
+{% block content %}
+<form method="POST">
+  <p>行数：</p>
+  <select name="rows">
+    {% for i in range(min_rows, max_rows + 1) %}
+      <option value="{{ i }}">{{ i }}</option>
+    {% endfor %}
+  </select>
+
+  <p>列数：</p>
+  <select name="cols">
+    {% for i in range(min_cols, max_cols + 1) %}
+      <option value="{{ i }}">{{ i }}</option>
+    {% endfor %}
+  </select>
+
+  <br><br>
+  <button type="submit">次へ</button>
+</form>
+{% endblock %}

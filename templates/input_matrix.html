@@ -1,26 +1,22 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>行列を入力</title>
-</head>
-<body>
-  <h1>行列を入力してください（{{ rows }} × {{ cols }}）</h1>
+{% extends "base.html" %}
 
-  <form method="POST" action="/result">
+{% block title %}行列の入力{% endblock %}
+
+{% block content %}
+<h2>行列を入力してください（{{ rows }} × {{ cols }}）</h2>
+
+<form method="POST" action="/result">
     {% for i in range(rows) %}
-      {% for j in range(cols) %}
+        {% for j in range(cols) %}
         <input type="text" name="cell_{{ i }}_{{ j }}" size="5" />
-      {% endfor %}
-      <br>
+        {% endfor %}
+        <br>
     {% endfor %}
 
-    <!-- 行数・列数を隠しフィールドで送信 -->
     <input type="hidden" name="rows" value="{{ rows }}">
     <input type="hidden" name="cols" value="{{ cols }}">
 
     <br>
     <button type="submit">計算する</button>
-  </form>
-</body>
-</html>
+</form>
+{% endblock %}

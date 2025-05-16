@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}掃き出し法ツール{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <div class="container" style="max-width: 800px; margin: auto; padding: 20px;">
+    <header>
+      <h1 style="text-align: center;">掃き出し法ツール</h1>
+      <hr>
+    </header>
+
+    {% block content %}
+    <!-- 各ページ固有の中身がここに入る -->
+    {% endblock %}
+
+    <footer style="text-align: center; font-size: small; margin-top: 40px;">
+    <hr>
+    <p>
+        &copy; 2025 asdfmz
+        | <a href="https://github.com/asdfmz/sweep_tool" target="_blank">GitHub</a>
+    </p>
+    </footer>
+  </div>
+</body>
+</html>
