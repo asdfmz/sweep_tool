@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, session, url_for
 import sympy as sp
 from sympy_codec import matrix_to_string_list, string_list_to_matrix
-from matrix_logic import apply_transformation 
+from matrix_logic import apply_transformation, gaussian_elimination_steps
 import config
 import os
 import session_handler as sh
@@ -73,6 +73,10 @@ def interactive_view():
             sh.step_to_start()
         elif "to_end" in request.form:
             sh.step_to_end()
+        elif "auto_solve" in request.form:
+            steps = gaussian_elimination_steps(sh.get_current_matrix())
+            for m, q in steps:
+                sh.append_step(m, q)
         else:
             op = request.form["operation"]
             target = int(request.form["target"])
