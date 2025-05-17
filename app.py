@@ -1,53 +1,103 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, session, url_for
+import sympy as sp
+from sympy_codec import matrix_to_string_list, string_list_to_matrix
+from matrix_logic import apply_transformation 
 import config
-from matrix_logic import parse_matrix, compute_rref  
 import os
 
-app = Flask(__name__)
 
+app = Flask(__name__)
+app.secret_key = "session-secret-key"
+
+# ------------------------------
+# 1. 行列サイズ選択
+# ------------------------------
 @app.route("/", methods=["GET", "POST"])
 def select_size():
-    if request.method == "GET":
-        settings = {
-            "min_rows": config.MIN_ROWS, 
-            "max_rows": config.MAX_ROWS, 
-            "min_cols": config.MIN_COLS, 
-            "max_cols": config.MAX_COLS, 
-        }
-        return render_template("select_size.html", **settings)    
-    elif request.method == "POST":
-        r = int(request.form["rows"])
-        c = int(request.form["cols"])
-        return redirect(url_for("input_matrix", rows=r, cols=c))
+    if request.method == "POST":
+        rows = int(request.form["rows"])
+        cols = int(request.form["cols"])
+        return redirect(url_for("input_matrix", rows=rows, cols=cols))
+    
+    settings = {
+        "min_rows": config.MIN_ROWS, 
+        "max_rows": config.MAX_ROWS, 
+        "min_cols": config.MIN_COLS, 
+        "max_cols": config.MAX_COLS, 
+    }
+    return render_template("select_size.html", **settings)
 
-@app.route("/input")
+# ------------------------------
+# 2. 行列入力フォーム表示
+# ------------------------------
+@app.route("/input_matrix")
 def input_matrix():
-    # クエリパラメータから行数と列数を取得
     rows = int(request.args.get("rows", 0))
     cols = int(request.args.get("cols", 0))
 
-    # 値が不正だったらエラーメッセージを返す（念のため）
     if rows <= 0 or cols <= 0:
         return "行数・列数が不正です", 400
 
     return render_template("input_matrix.html", rows=rows, cols=cols)
 
-@app.route("/result", methods=["POST"])
-def show_result():
-    try:
-        rows = int(request.form["rows"])
-        cols = int(request.form["cols"])
+# ------------------------------
+# 3. 初期行列 & セッション保存
+# ------------------------------
+@app.route("/init_matrix", methods=["POST"])
+def init_matrix():
+    rows = int(request.form["rows"])
+    cols = int(request.form["cols"])
 
-        # 入力データから行列を構築
-        matrix = parse_matrix(request.form, rows, cols)
-        result_matrix = compute_rref(matrix)
+    matrix_str = []
+    for i in range(rows):
+        row = []
+        for j in range(cols):
+            value = request.form.get(f"cell_{i}_{j}", "0")
+            if value.strip() == "":
+                value = "0"
+            row.append(str(sp.sympify(value)))
+        matrix_str.append(row)
 
-        return render_template("result.html",
-            rows=rows, cols=cols,
-            result=str(result_matrix))
+    session["matrix_state"] = {
+        "initial": matrix_str,
+        "current": matrix_str,
+        "history": []
+    }
+    return redirect(url_for("interactive_view"))
 
-    except Exception as e:
-        return f"エラーが発生しました: {str(e)}", 400
+# ------------------------------
+# 4. 基本変形実行ページ（GET/POST）
+# ------------------------------
+@app.route("/interactive", methods=["GET", "POST"])
+def interactive_view():
+    if "matrix_state" not in session:
+        return redirect(url_for("select_size"))
+    
+    state = session["matrix_state"]
+    matrix = string_list_to_matrix(state["current"])
+    history = state["history"]
+
+    if request.method == "POST":
+        op = request.form["operation"]
+        target = int(request.form["target"])
+        factor = request.form.get("factor")
+        other = request.form.get("other")
+
+        factor = sp.sympify(factor) if factor else None
+        other = int(other) if other else None
+
+        matrix, log = apply_transformation(matrix, op, target, factor, other)
+        history.append(log)
+        
+        session["matrix_state"] = {
+            "initial": state["initial"],
+            "current": matrix_to_string_list(matrix),
+            "history": history
+        }
+        return redirect(url_for("interactive_view"))
+    
+    latex_result = sp.latex(matrix)
+    return render_template("interactive.html", latex_result=latex_result, history=history, config=config)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
