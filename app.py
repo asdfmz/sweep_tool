@@ -4,6 +4,7 @@ from sympy_codec import matrix_to_string_list, string_list_to_matrix
 from matrix_logic import apply_transformation 
 import config
 import os
+import session_handler as sh
 
 
 app = Flask(__name__)
@@ -19,13 +20,7 @@ def select_size():
         cols = int(request.form["cols"])
         return redirect(url_for("input_matrix", rows=rows, cols=cols))
     
-    settings = {
-        "min_rows": config.MIN_ROWS, 
-        "max_rows": config.MAX_ROWS, 
-        "min_cols": config.MIN_COLS, 
-        "max_cols": config.MAX_COLS, 
-    }
-    return render_template("select_size.html", **settings)
+    return render_template("select_size.html", config=config)
 
 # ------------------------------
 # 2. 行列入力フォーム表示
@@ -58,11 +53,7 @@ def init_matrix():
             row.append(str(sp.sympify(value)))
         matrix_str.append(row)
 
-    session["matrix_state"] = {
-        "initial": matrix_str,
-        "current": matrix_str,
-        "history": []
-    }
+    sh.init_session(matrix_str)
     return redirect(url_for("interactive_view"))
 
 # ------------------------------
@@ -70,34 +61,45 @@ def init_matrix():
 # ------------------------------
 @app.route("/interactive", methods=["GET", "POST"])
 def interactive_view():
-    if "matrix_state" not in session:
+    if "m" not in session:
         return redirect(url_for("select_size"))
-    
-    state = session["matrix_state"]
-    matrix = string_list_to_matrix(state["current"])
-    history = state["history"]
 
     if request.method == "POST":
-        op = request.form["operation"]
-        target = int(request.form["target"])
-        factor = request.form.get("factor")
-        other = request.form.get("other")
+        if "back" in request.form:
+            sh.step_back()
+        elif "forward" in request.form:
+            sh.step_forward()
+        elif "to_start" in request.form:
+            sh.step_to_start()
+        elif "to_end" in request.form:
+            sh.step_to_end()
+        else:
+            op = request.form["operation"]
+            target = int(request.form["target"])
+            factor = request.form.get("factor")
+            other = request.form.get("other")
 
-        factor = sp.sympify(factor) if factor else None
-        other = int(other) if other else None
+            factor = sp.sympify(factor) if factor else None
+            other = int(other) if other else None
 
-        matrix, log = apply_transformation(matrix, op, target, factor, other)
-        history.append(log)
-        
-        session["matrix_state"] = {
-            "initial": state["initial"],
-            "current": matrix_to_string_list(matrix),
-            "history": history
-        }
+            current_matrix = sh.get_current_matrix()
+            new_matrix, _ = apply_transformation(current_matrix, op, target, factor, other)
+
+            query = {"o": op[0], "t": target, "f": str(factor) if factor else None, "r": other}
+            sh.append_step(new_matrix, query)
+            
         return redirect(url_for("interactive_view"))
     
+    matrix = sh.get_current_matrix()
     latex_result = sp.latex(matrix)
-    return render_template("interactive.html", latex_result=latex_result, history=history, config=config)
+    logs = [sh.generate_log(q) for q in sh.get_query_history()[:sh.get_current_step() + 1]]
+
+    current = sh.get_current_step()
+    last = len(sh.get_matrix_history()) - 1
+
+    return render_template("interactive.html", latex_result=latex_result, history=logs,
+                           current=current, last=last, config=config)
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

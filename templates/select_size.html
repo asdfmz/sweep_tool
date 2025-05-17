@@ -6,14 +6,14 @@
 <form method="POST">
   <p>行数：</p>
   <select name="rows">
-    {% for i in range(min_rows, max_rows + 1) %}
+    {% for i in range(config.MIN_ROWS, config.MAX_ROWS + 1) %}
       <option value="{{ i }}">{{ i }}</option>
     {% endfor %}
   </select>
 
   <p>列数：</p>
   <select name="cols">
-    {% for i in range(min_cols, max_cols + 1) %}
+    {% for i in range(config.MIN_COLS, config.MAX_COLS + 1) %}
       <option value="{{ i }}">{{ i }}</option>
     {% endfor %}
   </select>

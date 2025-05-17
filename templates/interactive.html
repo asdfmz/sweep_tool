@@ -8,9 +8,10 @@
 <hr>
 <h3>次の基本変形を指定：</h3>
 <form method="POST">
+    
     <div>
-        <label fro="operation">操作タイプ：</label>
-        <select name="operation", id="operation">
+        <label for="operation">操作タイプ：</label>
+        <select name="operation" id="operation">
             <option value="scale">定数倍</option>
             <option value="add">加える</option>
             <option value="swap">入れ替える</option>
@@ -36,6 +37,13 @@
 
     <br>
     <button type="submit">変形を実行</button>
+</form>
+
+<form method="POST" style="display: flex; gap: 0.5em; margin-top: 1em;">
+  <button type="submit" name="to_start" id="to_start-button">&laquo;</button>
+  <button type="submit" name="back" id="back-button">&lsaquo;</button>
+  <button type="submit" name="forward" id="forward-button">&rsaquo;</button>
+  <button type="submit" name="to_end" id="to_end-button">&raquo;</button>
 </form>
 
 <hr>
@@ -69,6 +77,24 @@ document.getElementById("operation").addEventListener("change", function () {
 
 // 初期化時にも実行（ページリロード後の状態対応）
 document.getElementById("operation").dispatchEvent(new Event("change"));
+</script>
+<script>
+  let current = Number("{{ current }}");
+  let last = Number("{{ last }}");
+
+  const to_startButton = document.getElementById("to_start-button");
+  const backBtn = document.getElementById("back-button");
+  const forwardBtn = document.getElementById("forward-button");
+  const to_endButton = document.getElementById("to_end-button");
+
+  if (current <= 0) {
+    to_startButton.disabled = true;
+    backBtn.disabled = true;
+  }
+  if (current >= last) {
+    forwardBtn.disabled = true;
+    to_endButton.disabled = true;
+  }
 </script>
 
 {% endblock %}
