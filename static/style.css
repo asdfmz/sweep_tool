@@ -34,3 +34,56 @@ button {
 button:hover {
   background-color: #45a049;
 }
+
+.history-sequence {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1em;
+}
+
+.matrix-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2em;
+}
+
+.arrow-log-block {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 1em;
+}
+
+.arrow-vertical {
+  font-size: 2em;
+  line-height: 1.5;
+}
+
+.log-tex {
+  text-align: left;
+  font-size: 1em;
+}
+
+.matrix-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1em;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 1em;
+}
+
+.matrix-block + form {
+  margin-top: 0.5em;
+}
+
+.current-label {
+  font-weight: bold;
+  color: #555;
+  padding: 0.4em 0.8em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #f0f0f0;
+}

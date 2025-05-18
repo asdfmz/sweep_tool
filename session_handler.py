@@ -5,7 +5,7 @@ def init_session(initial_matrix):
     """初期化：初期行列から履歴リストを作成し、セッションに保存"""
     session["m"] = [
         [initial_matrix],  # matrix_history
-        [None],                                   # query_history
+        [],                                   # query_history
         0                                          # current_step
     ]
 
@@ -52,22 +52,23 @@ def step_to_start():
 def step_to_end():
     session["m"] = [session["m"][0], session["m"][1], len(session["m"][0]) - 1]
 
-def generate_log(query):
-    """
-    queryオブジェクトからログ文字列を生成（短縮構造対応）
-    """
+def jump_to_step(index: int):
+    if 0 <= index < len(session["m"][0]):
+        session["m"] = [session["m"][0], session["m"][1], index]
+
+def generate_log_latex(query):
     if not query:
-        return "初期状態"
+        return r"初期状態"
     op = query["o"]
     t = query["t"]
     f = query.get("f")
     r = query.get("r")
 
     if op == "s":
-        return f"R{t} ← {f} × R{t}"
+        return fr"R_{{{t}}} \leftarrow {f} \cdot R_{{{t}}}"
     elif op == "a":
-        return f"R{t} ← R{t} + {f} × R{r}"
+        return fr"R_{{{t}}} \leftarrow R_{{{t}}} + {f} \cdot R_{{{r}}}"
     elif op == "w":
-        return f"R{t} ⇄ R{r}"
+        return fr"R_{{{t}}} \leftrightarrow R_{{{r}}}"
     else:
-        return "不明な操作"
+        return r"不明な操作"

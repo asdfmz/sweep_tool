@@ -73,6 +73,9 @@ def interactive_view():
             sh.step_to_start()
         elif "to_end" in request.form:
             sh.step_to_end()
+        elif "jump_to" in request.form:
+            index = int(request.form["jump_to"])
+            sh.jump_to_step(index)
         elif "auto_solve" in request.form:
             steps = gaussian_elimination_steps(sh.get_current_matrix())
             for m, q in steps:
@@ -91,18 +94,24 @@ def interactive_view():
 
             query = {"o": op[0], "t": target, "f": str(factor) if factor else None, "r": other}
             sh.append_step(new_matrix, query)
-            
+
         return redirect(url_for("interactive_view"))
-    
-    matrix = sh.get_current_matrix()
-    latex_result = sp.latex(matrix)
-    logs = [sh.generate_log(q) for q in sh.get_query_history()[:sh.get_current_step() + 1]]
 
+    matrices = [sp.latex(string_list_to_matrix(m)) for m in sh.get_matrix_history()]
+    queries = [sh.generate_log_latex(q) for q in sh.get_query_history()]
     current = sh.get_current_step()
-    last = len(sh.get_matrix_history()) - 1
+    query_len = len(queries)
 
-    return render_template("interactive.html", latex_result=latex_result, history=logs,
-                           current=current, last=last, config=config)
+    matrix = sh.get_matrix_history()[current]
+    latex_matrix = sp.latex(string_list_to_matrix(matrix))
+    matrix_rows = string_list_to_matrix(matrix).rows
+
+    return render_template("interactive.html",
+                           latex_matrix=latex_matrix,
+                           current=current,
+                           matrix_rows=matrix_rows, config=config,
+                           matrices=matrices, queries=queries,
+                           query_len=query_len)
 
 
 if __name__ == "__main__":
